@@ -27,7 +27,8 @@ enum FlowControlType
   FCT_AUTOOFF=2,
   FCT_MANUAL=3,
   FCT_DISABLED=4,
-  FCT_INVALID=5
+  FCT_AMTRCTL=5,
+  FCT_INVALID=6
 };
 
 static bool enableRtsCts = true;

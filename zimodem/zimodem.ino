@@ -68,13 +68,17 @@ const char compile_date[] = __DATE__ " " __TIME__;
 # define HARD_DCD_HIGH 1
 //# define HARD_DCD_LOW 1
 #else  // ESP-8266, e.g. ESP-01, ESP-12E, inverted for C64Net WiFi Modem
-# define DEFAULT_PIN_DSR 13
-# define DEFAULT_PIN_DTR 12
+//# define DEFAULT_PIN_DSR 13  // We don't need this for Atari, move it to an unused pin so we can move UART to other pins.
+# define DEFAULT_PIN_DSR 10
+//# define DEFAULT_PIN_DTR 12 // We don't need this for Atari, move it to an unused pin so we can use it for CMD
+# define DEFAULT_PIN_DTR 9
 # define DEFAULT_PIN_RI 14
 # define DEFAULT_PIN_RTS 4
 # define DEFAULT_PIN_CTS 5 // is 0 for ESP-01, see getDefaultCtsPin() below.
 # define DEFAULT_PIN_DCD 2
-# define DEFAULT_FCT FCT_RTSCTS
+# define DEFAULT_PIN_MTR 16 // Atari Motor Ctrl
+# define DEFAULT_PIN_CMD 12 // Atari Command
+# define DEFAULT_FCT FCT_AMTRCTL // Atari Motor Ctrl
 # define RS232_INVERTED 1
 # define debugPrintf doNothing
 # define preEOLN(...)
@@ -108,6 +112,12 @@ const char compile_date[] = __DATE__ " " __TIME__;
 # define DEFAULT_DTR_HIGH  LOW
 # define DEFAULT_DTR_LOW  HIGH
 #endif
+
+// Atari Motor Ctrl & Command
+# define DEFAULT_MTR_LOW  HIGH
+# define DEFAULT_MTR_HIGH LOW
+# define DEFAULT_CMD_LOW  HIGH
+# define DEFAULT_CMD_HIGH LOW
 
 #define DEFAULT_BAUD_RATE 1200
 #define DEFAULT_SERIAL_CONFIG SERIAL_8N1
@@ -197,6 +207,14 @@ static int dtrActive = DEFAULT_DTR_HIGH;
 static int dtrInactive = DEFAULT_DTR_LOW;
 static int dsrActive = DEFAULT_DSR_HIGH;
 static int dsrInactive = DEFAULT_DSR_LOW;
+
+// Atari Motor Ctrl & Command
+static int pinMTR = DEFAULT_PIN_MTR;
+static int mtrActive = DEFAULT_MTR_LOW;
+static int mtrInactive = DEFAULT_MTR_HIGH;
+static int pinCMD = DEFAULT_PIN_CMD;
+static int cmdActive = DEFAULT_CMD_LOW;
+static int cmdInactive = DEFAULT_CMD_HIGH;
 
 static int getDefaultCtsPin()
 {
@@ -290,6 +308,7 @@ static void changeBaudRate(int baudRate)
   HWSerial.changeBaudRate(baudRate);
 #else
   HWSerial.begin(baudRate, serialConfig);  //Change baud rate
+  HWSerial.swap(); //Swap UART Pins for Atari Motor Control (GPIO13-RX & GPIO15-TX)
 #endif  
 }
 
@@ -304,6 +323,7 @@ static void changeSerialConfig(SerialConfig conf)
   HWSerial.changeConfig(conf);
 #else
   HWSerial.begin(baudRate, conf);  //Change baud rate
+  HWSerial.swap(); //Swap UART Pins for Atari Motor Control (GPIO13-RX & GPIO15-TX)
 #endif  
   debugPrintf("Config changed.\n");
 }
@@ -375,6 +395,7 @@ void setup()
     debugPrintf("SPIFFS Formatted.");
   }
   HWSerial.begin(DEFAULT_BAUD_RATE, DEFAULT_SERIAL_CONFIG);  //Start Serial
+  HWSerial.swap(); //Swap UART Pins for Atari Motor Control (GPIO13-RX & GPIO15-TX)
   commandMode.loadConfig();
   PhoneBookEntry::loadPhonebook();
   dcdStatus = dcdInactive;
@@ -431,6 +452,8 @@ void checkFactoryReset()
 void loop() 
 {
   checkFactoryReset();
+  //if(HWSerial.available() && digitalRead(pinMTR) == mtrInactive && digitalRead(pinCMD) == cmdInactive)
+  //if(HWSerial.available() && digitalRead(pinMTR) == mtrActive)
   if(HWSerial.available())
   {
     currMode->serialIncoming();

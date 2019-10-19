@@ -186,6 +186,12 @@ bool ZSerial::isSerialOut()
     return true;
   case FCT_INVALID:
     return true;
+  case FCT_AMTRCTL:
+    //debugPrintf("pinMTR: pin %d (%d == %d)\n",pinMTR,digitalRead(pinMTR),mtrActive);
+    if(digitalRead(pinMTR) == mtrActive || digitalRead(pinCMD) == cmdActive)
+      return(true);
+    else
+      return(false);
   }
   return XON_STATE;
 }
@@ -199,6 +205,13 @@ bool ZSerial::isSerialCancelled()
       //debugPrintf("CTS: pin %d (%d == %d)\n",pinCTS,digitalRead(pinCTS),ctsActive);
       return (digitalRead(pinCTS) == ctsInactive);
     }
+  }
+  if(flowControlType == FCT_AMTRCTL)
+  {
+    if(digitalRead(pinMTR) == mtrInactive || digitalRead(pinCMD) == cmdInactive)
+      return(false);
+    else
+      return(true);
   }
   return false;
 }
@@ -226,6 +239,7 @@ void ZSerial::enqueByte(uint8_t c)
       }
       break;
     case FCT_RTSCTS:
+    case FCT_AMTRCTL:
 #ifdef ZIMODEM_ESP32
       if(isSerialOut())
 #else
@@ -393,6 +407,8 @@ char ZSerial::drainForXonXoff()
       case FCT_INVALID:
         break;
       case FCT_RTSCTS:
+        break;
+      case FCT_AMTRCTL:
         break;
     }
   }

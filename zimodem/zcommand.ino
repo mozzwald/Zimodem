@@ -122,6 +122,8 @@ void ZCommand::setConfigDefaults()
     pinMode(pinDSR,OUTPUT);
   if(pinSupport[pinRI])
     pinMode(pinRI,OUTPUT);
+  pinMode(pinMTR, INPUT);
+  pinMode(pinCMD, INPUT);
   s_pinWrite(pinRTS,rtsActive);
   s_pinWrite(pinDCD,dcdStatus);
   s_pinWrite(pinDSR,dsrActive);
@@ -476,7 +478,7 @@ void ZCommand::loadConfig()
     connectWifi(wifiSSI.c_str(),wifiPW.c_str());
   }
   doResetCommand();
-  showInitMessage();
+  //showInitMessage();
 }
 
 ZResult ZCommand::doInfoCommand(int vval, uint8_t *vbuf, int vlen, bool isNumber)
@@ -525,7 +527,9 @@ ZResult ZCommand::doInfoCommand(int vval, uint8_t *vbuf, int vlen, bool isNumber
     case FCT_DISABLED:
       serial.prints("F4");
       break;
-    }
+    case FCT_AMTRCTL:
+      serial.prints("F5");
+      break;    }
     if(EOLN==CR)
       serial.prints("R0");
     else
@@ -1595,6 +1599,8 @@ bool ZCommand::readSerialStream()
   while(HWSerial.available()>0)
   {
     uint8_t c=HWSerial.read();
+    if( digitalRead(pinMTR) == mtrInactive || digitalRead(pinCMD) == cmdInactive )
+      break; // Atari: drop incoming data if motor or cmd is active
     logSerialIn(c);
     if((c==CR[0])||(c==LF[0]))
     {
@@ -2226,8 +2232,11 @@ ZResult ZCommand::doSerialCommand()
                 case 3: case 6:
                   serial.setFlowControlType(FCT_RTSCTS);
                   break;
-                case 4: case 5:
+                case 4:
                   serial.setFlowControlType(FCT_NORMAL);
+                  break;
+                case 5: // Atari Motor Ctrl
+                  serial.setFlowControlType(FCT_AMTRCTL);
                   break;
                 default:
                   result=ZERROR;
