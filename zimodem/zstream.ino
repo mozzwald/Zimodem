@@ -62,6 +62,8 @@ void ZStream::serialIncoming()
   while(--bytesAvailable >= 0)
   {
     uint8_t c=HWSerial.read();
+    if( digitalRead(pinMTR) == 0 || digitalRead(pinCMD) == 0 )
+      break; // Atari: drop incoming data if motor or cmd is active
     logSerialIn(c);
     if((c==commandMode.EC)
     &&((plussesInARow>0)||((millis()-lastNonPlusTimeMs)>800)))
@@ -180,6 +182,7 @@ void ZStream::loop()
     conn = nextConn;
   }
   
+  /* This breaks connection on Atari if there is other SIO activity
   if(pinSupport[pinDTR])
   {
     if(lastDTR==dtrActive)
@@ -195,6 +198,7 @@ void ZStream::loop()
     }
     lastDTR = digitalRead(pinDTR);
   }
+  */
   if((current==null)||(!current->isConnected()))
   {
     switchBackToCommandMode(true);

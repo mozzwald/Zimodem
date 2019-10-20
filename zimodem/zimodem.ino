@@ -113,12 +113,6 @@ const char compile_date[] = __DATE__ " " __TIME__;
 # define DEFAULT_DTR_LOW  HIGH
 #endif
 
-// Atari Motor Ctrl & Command
-# define DEFAULT_MTR_LOW  HIGH
-# define DEFAULT_MTR_HIGH LOW
-# define DEFAULT_CMD_LOW  HIGH
-# define DEFAULT_CMD_HIGH LOW
-
 #define DEFAULT_BAUD_RATE 1200
 #define DEFAULT_SERIAL_CONFIG SERIAL_8N1
 #define MAX_PIN_NO 50
@@ -195,6 +189,8 @@ static int pinRTS = DEFAULT_PIN_RTS;
 static int pinDSR = DEFAULT_PIN_DSR;
 static int pinDTR = DEFAULT_PIN_DTR;
 static int pinRI = DEFAULT_PIN_RI;
+static int pinMTR = DEFAULT_PIN_MTR; // Atari Motor Ctrl
+static int pinCMD = DEFAULT_PIN_CMD; // Atari Command
 static int dcdActive = DEFAULT_DCD_HIGH;
 static int dcdInactive = DEFAULT_DCD_LOW;
 static int ctsActive = DEFAULT_CTS_HIGH;
@@ -207,14 +203,6 @@ static int dtrActive = DEFAULT_DTR_HIGH;
 static int dtrInactive = DEFAULT_DTR_LOW;
 static int dsrActive = DEFAULT_DSR_HIGH;
 static int dsrInactive = DEFAULT_DSR_LOW;
-
-// Atari Motor Ctrl & Command
-static int pinMTR = DEFAULT_PIN_MTR;
-static int mtrActive = DEFAULT_MTR_LOW;
-static int mtrInactive = DEFAULT_MTR_HIGH;
-static int pinCMD = DEFAULT_PIN_CMD;
-static int cmdActive = DEFAULT_CMD_LOW;
-static int cmdInactive = DEFAULT_CMD_HIGH;
 
 static int getDefaultCtsPin()
 {
@@ -452,8 +440,6 @@ void checkFactoryReset()
 void loop() 
 {
   checkFactoryReset();
-  //if(HWSerial.available() && digitalRead(pinMTR) == mtrInactive && digitalRead(pinCMD) == cmdInactive)
-  //if(HWSerial.available() && digitalRead(pinMTR) == mtrActive)
   if(HWSerial.available())
   {
     currMode->serialIncoming();

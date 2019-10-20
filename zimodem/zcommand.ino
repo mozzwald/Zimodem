@@ -1599,7 +1599,8 @@ bool ZCommand::readSerialStream()
   while(HWSerial.available()>0)
   {
     uint8_t c=HWSerial.read();
-    if( digitalRead(pinMTR) == mtrInactive || digitalRead(pinCMD) == cmdInactive )
+    if((digitalRead(pinMTR) == 0)
+    || (digitalRead(pinCMD) == 0))
       break; // Atari: drop incoming data if motor or cmd is active
     logSerialIn(c);
     if((c==CR[0])||(c==LF[0]))
@@ -2235,7 +2236,7 @@ ZResult ZCommand::doSerialCommand()
                 case 4:
                   serial.setFlowControlType(FCT_NORMAL);
                   break;
-                case 5: // Atari Motor Ctrl
+                case 5: // Atari Motor Ctrl & Command
                   serial.setFlowControlType(FCT_AMTRCTL);
                   break;
                 default:

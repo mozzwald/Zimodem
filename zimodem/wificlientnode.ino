@@ -133,6 +133,7 @@ bool WiFiClientNode::isEcho()
 
 FlowControlType WiFiClientNode::getFlowControl()
 {
+  return FCT_AMTRCTL; // Always Atari Flow Control
   if((flagsBitmap & FLAG_RTSCTS) == FLAG_RTSCTS)
     return FCT_RTSCTS;
   if((flagsBitmap & FLAG_XONXOFF) == FLAG_XONXOFF)

@@ -187,11 +187,11 @@ bool ZSerial::isSerialOut()
   case FCT_INVALID:
     return true;
   case FCT_AMTRCTL:
-    //debugPrintf("pinMTR: pin %d (%d == %d)\n",pinMTR,digitalRead(pinMTR),mtrActive);
-    if(digitalRead(pinMTR) == mtrActive || digitalRead(pinCMD) == cmdActive)
-      return(true);
-    else
-      return(false);
+    // If Motor or Command is pulled low, SIO is busy. serial is NOT out
+    if( (digitalRead(pinMTR) == 0)
+    || (digitalRead(pinCMD) == 0) )
+      return false;
+    return true;
   }
   return XON_STATE;
 }
@@ -208,10 +208,10 @@ bool ZSerial::isSerialCancelled()
   }
   if(flowControlType == FCT_AMTRCTL)
   {
-    if(digitalRead(pinMTR) == mtrInactive || digitalRead(pinCMD) == cmdInactive)
-      return(false);
-    else
-      return(true);
+    // If Motor or Command is pulled low, SIO is busy. serial is CANCELLED
+    if( (digitalRead(pinMTR) == 0)
+    || (digitalRead(pinCMD) == 0) )
+      return true;
   }
   return false;
 }
